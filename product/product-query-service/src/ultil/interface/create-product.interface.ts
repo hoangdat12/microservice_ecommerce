@@ -1,0 +1,16 @@
+export class IProduct {
+  _id: string;
+  product_name: string;
+  product_thumb: string;
+  product_description: string;
+  product_price: number;
+  product_type: string;
+  product_shop: {
+    id: string;
+    name: string;
+  };
+
+  product_attributes: any;
+
+  product_images: string[];
+}

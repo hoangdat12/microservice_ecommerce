@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package shop;
+
+service Shop {
+  rpc getShopOfDiscount (ShopOfDiscountRequest) returns (ShopOfDiscountResponse) {}
+  rpc isExistShop (ShopId) returns (ShopInformation) {}
+}
+
+message ShopOfDiscountRequest {
+    string shopId = 1;
+}
+
+message ShopOfDiscountResponse {
+    int32 id = 1;
+    int32  shop_owner = 2;
+    string shop_name = 3;
+}
+
+message ShopId {
+  string shop_id = 1;
+}
+
+message ShopInformation {
+  string id = 1;
+  repeated string shop_owner = 2;
+  string shop_name = 3;
+  string shop_description = 4;
+  int32 shop_total_product = 5;
+  int32 shop_followers = 6;
+  int32 shop_following = 7;
+  repeated string shop_category = 8;
+  int32 shop_evaluate = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}

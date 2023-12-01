@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+service Inventory {
+    rpc checkProductIsStock(InvenProductRequest) returns (InvenProductResponse) {}
+    rpc decreProduct(InvenProductRequest) returns (DecreProductResponse) {}
+}
+
+message InvenProductRequest {
+    string productId = 1;
+    string shopId = 2;
+    string quantity = 3;
+}
+
+message InvenProductResponse {
+    bool isStock = 1;
+    string message = 2;
+}
+
+message DecreProductResponse {
+    bool isSuccess = 1;
+    string message = 2;
+}
