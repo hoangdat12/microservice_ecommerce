@@ -9,6 +9,7 @@ import {
   createIndexWithMapping,
   updateMapping,
 } from './model/els.mapping/product.mapping';
+import serverGrpc from './grpc/server.grpc';
 
 dotenv.config();
 const app: Express = express();
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 // createIndexWithMapping();
 // updateMapping();
 Mongodb.getInstance();
+serverGrpc.onServer();
 
 app.use('/product/query', productRoute);
 

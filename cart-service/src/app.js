@@ -6,11 +6,13 @@ import ServerGRPC from './gRPC/server.gRPC.js';
 import Database from './dbs/init.mongodb.js';
 import cartRoute from './routes/cart.route.js';
 import Consumer from './rabbitMQ/comsumer.js';
+import { RedisDB } from './dbs/init.redis.js';
 
 const app = express();
 
 // CONNECT
 Database.getInstance('mongodb');
+RedisDB.getInstance();
 
 const serverGRPC = new ServerGRPC();
 serverGRPC.onServer();
@@ -40,10 +42,20 @@ function parseJSON(req, res, next) {
 app.use(parseJSON);
 
 // RabbitMQ
-const consumer = new Consumer();
-await consumer.receivedMessage();
+// const consumer = new Consumer();
+// await consumer.receivedMessage();
 
 // ROUTE
 app.use('/api/v1/cart', cartRoute);
+
+app.use((err, req, res, next) => {
+  console.log(err);
+  const statusCode = err.status || 500;
+  return res.status(statusCode).json({
+    status: 'Error',
+    code: statusCode,
+    message: err.message || 'Internal Server Error!',
+  });
+});
 
 export default app;

@@ -1,4 +1,3 @@
-import { NotFound } from '../core/error.response';
 import { _Product } from '../model/product.model';
 import { IProduct } from '../ultil/interface/create-product.interface';
 import { IPagination } from '../ultil/interface/pagination.interface';
@@ -6,6 +5,24 @@ import { IPagination } from '../ultil/interface/pagination.interface';
 export class ProductRepository {
   static async findProductById(productId: string) {
     return await _Product.findOne({ _id: productId }).lean();
+  }
+
+  static async findProductByIds(productIds: string[]) {
+    return await _Product
+      .find({
+        _id: { $in: productIds },
+      })
+      // .select([
+      //   '_id',
+      //   'product_name',
+      //   'product_thumb',
+      //   'product_price',
+      //   'product_type',
+      //   'product_shop',
+      //   'product_images',
+      // ])
+      .lean()
+      .exec();
   }
 
   static async findProducts(

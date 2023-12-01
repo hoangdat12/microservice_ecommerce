@@ -1,17 +1,18 @@
+import { USER_SPECIFIC } from '../constant/redis.constant.js';
 import {
   BadRequestError,
   ConflictRequestError,
   InternalServerError,
   NotFoundError,
 } from '../core/error.response.js';
-import ClientGRPC from '../gRPC/client.gRPC.js';
 import CartRepository from '../repository/cart.repository.js';
+import { convertArrToKeyValuePair } from '../ultils/func/convertArrToKeyValuePair.js';
+import { RedisService } from './redis.service.js';
+import { productGrpc } from '../gRPC/client.gRPC.js';
 /**
  * addToSet do not add new Item to array if item is exist in array
  * push then not care that
  */
-
-const clientGRPCForProduct = new ClientGRPC('product_queue');
 
 class CartService {
   static async createCartForNewUser({ userId }) {
@@ -177,6 +178,72 @@ class CartService {
     const cartUserExist = await CartRepository.findByUserId({ userId });
     if (!cartUserExist) throw new NotFoundError('User not found!');
     else return cartUserExist;
+  }
+
+  // Redis shopping cart for user non-login
+  static async addProduct({ sessionId, productId, quantity }) {
+    const key = `${USER_SPECIFIC}${sessionId}`;
+    const field = productId;
+    const value = quantity;
+
+    if (quantity <= 0) throw BadRequestError('Invalid value!');
+
+    const foundProduct = await RedisService.hget({ key, field });
+    if (foundProduct) {
+      // Update quantity
+      return await RedisService.hincrby({ key, field, incre: quantity });
+    } else {
+      // Add
+      return await RedisService.hset({ key, field, value });
+    }
+  }
+
+  static async updateQuantityProduct({ sessionId, productId, quantity }) {
+    const key = `${USER_SPECIFIC}${sessionId}`;
+    const field = productId;
+    const value = quantity;
+
+    const foundProduct = await RedisService.hget({ key, field });
+    if (!foundProduct) throw new NotFoundError('Product not found!');
+    // Update quantity
+    const curQuantity = await RedisService.hincrby({
+      key,
+      field,
+      incre: value,
+    });
+    if (curQuantity <= 0) {
+      // Delete product in cart
+      return await RedisService.hdel({ key, field });
+    }
+
+    return curQuantity;
+  }
+
+  static async getProductInCart({ sessionId, page, limit }) {
+    const key = `${USER_SPECIFIC}${sessionId}`;
+    const offset = (page - 1) * limit;
+    const results = await RedisService.hgetall({ key });
+
+    const { ids, productKV } = convertArrToKeyValuePair({
+      results,
+      offset,
+      limit,
+    });
+
+    // Get product from Product Query Service
+    const products = await productGrpc.getProducts({ ids });
+
+    for (let product of products) {
+      product.product_quantity = productKV[product._id];
+    }
+
+    return products;
+  }
+
+  static async deleteProductInCart({ sessionId, productId }) {
+    const key = `${USER_SPECIFIC}${sessionId}`;
+    const field = productId;
+    return await RedisService.hdel({ key, field });
   }
 }
 

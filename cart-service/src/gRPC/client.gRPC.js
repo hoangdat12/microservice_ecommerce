@@ -2,7 +2,6 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { BadRequestError } from '../core/error.response.js';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirectory = path.dirname(currentFilePath);
@@ -18,24 +17,34 @@ const packageDefinition = protoLoader.loadSync(
 );
 
 const product = grpc.loadPackageDefinition(packageDefinition).Product;
-const auth = grpc.loadPackageDefinition(packageDefinition).Auth;
+// const auth = grpc.loadPackageDefinition(packageDefinition).Auth;
 
-class ClientGRPC {
-  static clientProduct;
+class ProductGrpc {
+  static instance;
+  clientProduct;
 
   constructor() {
-    if (!ClientGRPC.clientProduct) {
-      ClientGRPC.clientProduct = new product(
-        'localhost:50051',
-        grpc.credentials.createInsecure()
-      );
+    this.connect();
+  }
+
+  connect() {
+    this.clientProduct = new product(
+      'localhost:50052',
+      grpc.credentials.createInsecure()
+    );
+  }
+
+  static getInstance() {
+    if (!ProductGrpc.instance) {
+      ProductGrpc.instance = new ProductGrpc();
     }
+    return ProductGrpc.instance;
   }
 
   async getProduct({ productId, shopId }) {
     const data = { productId, shopId };
     return new Promise((resolve, reject) => {
-      ClientGRPC.clientProduct.getProduct(data, (error, response) => {
+      this.clientProduct.getProduct(data, (error, response) => {
         if (error) {
           reject(error);
         } else {
@@ -44,36 +53,48 @@ class ClientGRPC {
       });
     });
   }
-}
 
-export class ClientGRPCForUser {
-  static clientAuth;
-
-  constructor() {
-    if (!ClientGRPCForUser.clientAuth) {
-      ClientGRPCForUser.clientAuth = new auth(
-        'localhost:50050',
-        grpc.credentials.createInsecure()
-      );
-    }
-  }
-
-  async verifyAccessToken({ accessToken, userId }) {
-    const data = { accessToken, userId };
+  async getProducts({ ids }) {
+    const data = { _ids: ids };
     return new Promise((resolve, reject) => {
-      ClientGRPCForUser.clientAuth.verifyAccessToken(
-        data,
-        (error, response) => {
-          if (error) {
-            console.log(error);
-            reject(error);
-          } else {
-            resolve(response);
-          }
-        }
-      );
+      console.log(this.clientProduct.getProducts);
+      this.clientProduct.getProducts(data, (err, res) => {
+        if (err) reject(err);
+        else resolve(res);
+      });
     });
   }
 }
 
-export default ClientGRPC;
+const productInstance = ProductGrpc.getInstance();
+export const productGrpc = productInstance;
+
+// export class ClientGRPCForUser {
+//   static clientAuth;
+
+//   constructor() {
+//     if (!ClientGRPCForUser.clientAuth) {
+//       ClientGRPCForUser.clientAuth = new auth(
+//         'localhost:50050',
+//         grpc.credentials.createInsecure()
+//       );
+//     }
+//   }
+
+//   async verifyAccessToken({ accessToken, userId }) {
+//     const data = { accessToken, userId };
+//     return new Promise((resolve, reject) => {
+//       ClientGRPCForUser.clientAuth.verifyAccessToken(
+//         data,
+//         (error, response) => {
+//           if (error) {
+//             console.log(error);
+//             reject(error);
+//           } else {
+//             resolve(response);
+//           }
+//         }
+//       );
+//     });
+//   }
+// }

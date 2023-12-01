@@ -29,7 +29,7 @@ class ServerGRPC {
     });
 
     server.bindAsync(
-      '0.0.0.0:50052',
+      '0.0.0.0:50056',
       grpc.ServerCredentials.createInsecure(),
       (err, port) => {
         if (err) {

@@ -1,8 +1,10 @@
 import { ForbiddenRequestError } from '../core/error.response.js';
-import { ClientGRPCForUser } from '../gRPC/client.gRPC.js';
+// import { ClientGRPCForUser } from '../gRPC/client.gRPC.js';
 import { asyncHandler } from '../helpers/asyncHandler.js';
 
-const clientGrpcForAuth = new ClientGRPCForUser();
+// const clientGrpcForAuth = new ClientGRPCForUser();
+
+const clientGrpcForAuth = {};
 
 const verifyAccessToken = asyncHandler(async (req, res, next) => {
   try {
