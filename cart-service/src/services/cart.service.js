@@ -219,25 +219,28 @@ class CartService {
     return curQuantity;
   }
 
-  static async getProductInCart({ sessionId, page, limit }) {
+  static async getProductInCart({ sessionId, page = 0, limit = 20 }) {
     const key = `${USER_SPECIFIC}${sessionId}`;
     const offset = (page - 1) * limit;
-    const results = await RedisService.hgetall({ key });
+    const resultsP = RedisService.hgetall({ key });
+    const totalP = RedisService.hlen({ key });
 
-    const { ids, productKV } = convertArrToKeyValuePair({
-      results,
+    const [results, total] = await Promise.all([resultsP, totalP]);
+    const ids = convertArrToKeyValuePair({
+      obj: results,
       offset,
       limit,
     });
-
     // Get product from Product Query Service
     const products = await productGrpc.getProducts({ ids });
-
     for (let product of products) {
-      product.product_quantity = productKV[product._id];
+      product.product_quantity = results[product._id];
     }
 
-    return products;
+    return {
+      products,
+      total,
+    };
   }
 
   static async deleteProductInCart({ sessionId, productId }) {

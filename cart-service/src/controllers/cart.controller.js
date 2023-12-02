@@ -84,6 +84,64 @@ class CartController {
       next(err);
     }
   }
+
+  // For User non-login
+  static async addProduct(req, res, next) {
+    try {
+      const { sessionId, productId, quantity } = req.body;
+      return new OK(
+        await CartService.addProduct({ sessionId, productId, quantity }),
+        'Success!'
+      ).send(res);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getProductsInCart(req, res, next) {
+    try {
+      const { sessionId } = req.params;
+      const { page, limit } = req.query;
+      return new OK(
+        await CartService.getProductInCart({
+          sessionId,
+          page: page ? parseInt(page) : 0,
+          limit: limit ? parseInt(limit) : 0,
+        }),
+        'Success!'
+      ).send(res);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async updateQuantityProduct(req, res, next) {
+    try {
+      const { sessionId, productId, quantity } = req.body;
+      return new OK(
+        await CartService.updateQuantityProduct({
+          sessionId,
+          productId,
+          quantity,
+        }),
+        'Success!'
+      ).send(res);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async deleteProduct(req, res, next) {
+    try {
+      const { sessionId, productId } = req.body;
+      return new OK(
+        await CartService.deleteProductInCart({ sessionId, productId }),
+        'Success!'
+      ).send(res);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export default CartController;

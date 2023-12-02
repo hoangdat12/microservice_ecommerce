@@ -1,8 +1,10 @@
 'use strict';
 
 import mongoose from 'mongoose';
+import * as dotenv from 'dotenv';
 
-const connectUri = 'mongodb://127.0.0.1:27017/cart-service';
+dotenv.config();
+const connectUri = process.env.MONGODB_URI;
 
 const connectMongoDb = () => {
   // Poolsize: max connection

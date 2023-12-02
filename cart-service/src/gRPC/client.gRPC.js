@@ -29,7 +29,7 @@ class ProductGrpc {
 
   connect() {
     this.clientProduct = new product(
-      'localhost:50052',
+      process.env.PRODUCT_GRPC_SERVER,
       grpc.credentials.createInsecure()
     );
   }
@@ -57,7 +57,6 @@ class ProductGrpc {
   async getProducts({ ids }) {
     const data = { _ids: ids };
     return new Promise((resolve, reject) => {
-      console.log(this.clientProduct.getProducts);
       this.clientProduct.getProducts(data, (err, res) => {
         if (err) reject(err);
         else resolve(res);

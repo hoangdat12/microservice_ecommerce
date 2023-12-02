@@ -9,7 +9,9 @@ import { ProductDetail } from './implement/ProductDetail';
 import { ProductIds } from './implement/ProductIds';
 import { Products } from './implement/Products';
 import { ProductRepository } from '../repository/product.repository';
+import * as dotenv from 'dotenv';
 
+dotenv.config();
 const currentFilePath = __filename;
 const currentDirectory = path.dirname(currentFilePath);
 
@@ -23,6 +25,7 @@ const packageDefinition = protoLoader.loadSync(
     oneofs: true,
   }
 );
+const SERVER_URI = process.env.GRPC_URI_SERVER;
 
 const product = grpc.loadPackageDefinition(
   packageDefinition
@@ -36,8 +39,10 @@ class ServerGRPC {
       getProducts: this.getProducts,
     } as ProductHandlers);
 
+    if (!SERVER_URI) throw new Error('Missing Server Uri');
+
     server.bindAsync(
-      '0.0.0.0:50052',
+      SERVER_URI,
       grpc.ServerCredentials.createInsecure(),
       (err, port) => {
         if (err) {
@@ -62,6 +67,8 @@ class ServerGRPC {
     res: grpc.sendUnaryData<Products>
   ) {
     const ids = req.request._ids;
+    console.log(ids);
+
     if (!ids || ids.length === 0) res(null, null);
     else {
       const products = (await ProductRepository.findProductByIds(

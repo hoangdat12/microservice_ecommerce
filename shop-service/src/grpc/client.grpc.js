@@ -18,32 +18,41 @@ const packageDefinition = protoLoader.loadSync(
 
 const auth = grpc.loadPackageDefinition(packageDefinition).Auth;
 
-export class ClientGRPCForUser {
-  static clientAuth;
+class AuthenticateGrpc {
+  static instance;
+  clientAuthenticate;
 
   constructor() {
-    if (!ClientGRPCForUser.clientAuth) {
-      ClientGRPCForUser.clientAuth = new auth(
-        'localhost:50050',
-        grpc.credentials.createInsecure()
-      );
-    }
+    this.connect();
   }
 
-  async verifyAccessToken({ accessToken, userId }) {
-    const data = { accessToken, userId };
+  connect() {
+    this.clientAuthenticate = new auth(
+      process.env.AUTHENTICATE_GRPC_SERVER,
+      grpc.credentials.createInsecure()
+    );
+  }
+
+  static getInstance() {
+    if (!AuthenticateGrpc.instance) {
+      AuthenticateGrpc.instance = new AuthenticateGrpc();
+    }
+    return AuthenticateGrpc.instance;
+  }
+
+  static verifyAccessToken({ userId, accessToken }) {
+    const data = { userId, accessToken };
     return new Promise((resolve, reject) => {
-      ClientGRPCForUser.clientAuth.verifyAccessToken(
-        data,
-        (error, response) => {
-          if (error) {
-            console.log(error);
-            reject(error);
-          } else {
-            resolve(response);
-          }
+      this.clientAuthenticate.verifyAccessToken(data, (error, response) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(response);
         }
-      );
+      });
     });
   }
 }
+
+const authenticateInstance = AuthenticateGrpc.getInstance();
+export const authenticateGrpc = authenticateInstance;

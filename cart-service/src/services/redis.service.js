@@ -25,4 +25,8 @@ export class RedisService {
   static async hgetall({ key }) {
     return await client.hgetall(key);
   }
+
+  static async hlen({ key }) {
+    return await client.hlen(key);
+  }
 }

@@ -1,10 +1,9 @@
-export const convertArrToKeyValuePair = ({ arr, offset = 0, limit = 20 }) => {
+export const convertArrToKeyValuePair = ({ obj, offset = 0, limit = 20 }) => {
   let ids = [];
-  let productKV = new Map();
-  for (let i = offset * 2; i < limit * 2; i += 2) {
-    ids.push(arr[i]);
-    productKV.set(arr[i], arr[i + 1]);
+  console.log(obj);
+  for (let key of Object.keys(obj)) {
+    console.log(key);
+    ids.push(key);
   }
-
-  return { ids, productKV };
+  return ids;
 };
